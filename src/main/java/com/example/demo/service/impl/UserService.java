@@ -25,22 +25,28 @@ public class UserService implements IUserService {
 
     @Autowired
     private UserInfoDao userInfoDao;
+
+    AtomicInteger atomicInteger = new AtomicInteger(0);
+
     @Transactional
     @Override
     public List<UserInfo>  saveUser(List<UserInfo> userInfoList) {
-        AtomicInteger atomicInteger = new AtomicInteger(0);
+
         TransactionSynchronizationUtils.invokeAfterCommit(Collections.singletonList(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
                 ;
                 System.out.println("xxxxx");
                 if (atomicInteger.incrementAndGet() <= 2) {
-                     // saveUser(userInfoList);
+                      saveUser(userInfoList);
+                } else {
+                    atomicInteger = new AtomicInteger(0);
+                    return;
                 }
             }
         }));
-        List<UserInfo> userInfos = userInfoDao.saveAll(userInfoList);
-        return userInfos;
+        userInfoDao.saveAll(userInfoList);
+        return userInfoList;
     }
 
     @Override
